@@ -6,8 +6,21 @@ build-backend = "hatchling.build"
 name = "agentsim"
 version = "0.1.0"
 description = "Multi-agent simulation environment with scenarios, analysis, and visualization"
+authors = [{ name = "TechKnowMad Labs", email = "admin@techknowmad.ai" }]
 license = { text = "MIT" }
+readme = "README.md"
 requires-python = ">=3.10"
+keywords = ["multi-agent", "simulation", "reinforcement-learning", "grid-world"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 dependencies = [
     "numpy>=1.24",
     "matplotlib>=3.7",
@@ -16,7 +29,11 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=7.4",
-    "ruff>=0.1",
+    "pytest-cov>=4.0",
+    "hypothesis>=6.0",
+    "ruff>=0.4",
+    "mypy>=1.0",
+    "pre-commit>=3.0",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -32,3 +49,8 @@ select = ["E", "F", "I"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+strict_optional = true
