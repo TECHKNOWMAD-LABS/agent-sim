@@ -29,8 +29,18 @@ class BaseAgent(ABC):
     ACTIONS = ("up", "down", "left", "right", "stay", "collect")
 
     def __init__(self, agent_id: str, position: tuple[int, int]) -> None:
+        if not isinstance(agent_id, str) or not agent_id.strip():
+            raise ValueError(f"agent_id must be a non-empty string, got {agent_id!r}")
+        if (
+            not isinstance(position, (tuple, list))
+            or len(position) != 2
+            or not all(isinstance(v, int) for v in position)
+        ):
+            raise ValueError(
+                f"position must be a 2-tuple of ints, got {position!r}"
+            )
         self.id = agent_id
-        self.state = AgentState(position=position)
+        self.state = AgentState(position=tuple(position))  # type: ignore[arg-type]
         self.history: list[AgentState] = []
         self._last_observation: dict[str, Any] = {}
 
@@ -43,13 +53,32 @@ class BaseAgent(ABC):
         """Select an action based on current beliefs/state."""
 
     def step(self, observation: dict[str, Any]) -> str:
-        """Record history, perceive, then decide."""
+        """Record history, perceive, then decide.
+
+        Args:
+            observation: Observation dict from the environment.  May be empty
+                but must not be None.
+
+        Returns:
+            The chosen action string.
+        """
+        if observation is None:
+            observation = {}
         self.history.append(self.state.copy())
         self.perceive(observation)
         return self.decide()
 
     def receive_reward(self, reward: float) -> None:
-        self.state.reward += reward
+        """Apply a scalar reward and drain a fixed energy cost.
+
+        Args:
+            reward: Numeric reward value.  Non-finite values are treated as 0.
+        """
+        import math
+
+        if not isinstance(reward, (int, float)) or not math.isfinite(reward):
+            reward = 0.0
+        self.state.reward += float(reward)
         self.state.energy = max(0.0, self.state.energy - 0.01)
         self.state.step += 1
 

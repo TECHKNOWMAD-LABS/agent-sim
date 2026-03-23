@@ -47,6 +47,16 @@ class GridEnvironment(BaseEnvironment):
         wall_density: float = 0.1,
         seed: int | None = None,
     ) -> None:
+        if not isinstance(rows, int) or rows < 1:
+            raise ValueError(f"rows must be a positive integer, got {rows!r}")
+        if not isinstance(cols, int) or cols < 1:
+            raise ValueError(f"cols must be a positive integer, got {cols!r}")
+        if not isinstance(food_count, int) or food_count < 0:
+            raise ValueError(f"food_count must be a non-negative integer, got {food_count!r}")
+        if not isinstance(wall_density, (int, float)) or not (0.0 <= wall_density < 1.0):
+            raise ValueError(
+                f"wall_density must be in [0.0, 1.0), got {wall_density!r}"
+            )
         self.rows = rows
         self.cols = cols
         self.food_count = food_count
@@ -61,16 +71,39 @@ class GridEnvironment(BaseEnvironment):
     # ------------------------------------------------------------------
 
     def add_agent(self, agent_id: str, position: tuple[int, int] | None = None) -> None:
-        """Register an agent.  Call before *reset*."""
-        if position is None:
-            position = self._random_empty()
-        self._agents[agent_id] = _AgentRecord(position=position)
+        """Register an agent.  Call before *reset*.
+
+        Args:
+            agent_id: Unique string identifier for the agent.
+            position: Optional (row, col) starting position.  If None a random
+                empty cell is chosen.
+
+        Raises:
+            ValueError: If agent_id is not a non-empty string or if position
+                is out of bounds.
+        """
+        if not isinstance(agent_id, str) or not agent_id.strip():
+            raise ValueError(f"agent_id must be a non-empty string, got {agent_id!r}")
+        if position is not None:
+            r, c = position
+            if not (0 <= r < self.rows and 0 <= c < self.cols):
+                raise ValueError(
+                    f"position {position!r} is out of bounds for {self.rows}x{self.cols} grid"
+                )
+            self._agents[agent_id] = _AgentRecord(position=position)
+        else:
+            self._agents[agent_id] = _AgentRecord(position=self._random_empty())
 
     # ------------------------------------------------------------------
     # BaseEnvironment interface
     # ------------------------------------------------------------------
 
     def reset(self) -> dict[str, Any]:
+        """Reset the grid and reposition all registered agents.
+
+        Returns:
+            Mapping of agent_id to initial observation dict.
+        """
         self._grid[:] = EMPTY
         self._step_count = 0
         self._place_walls()
@@ -82,6 +115,24 @@ class GridEnvironment(BaseEnvironment):
         return {aid: self.get_observation(aid) for aid in self._agents}
 
     def step(self, agent_id: str, action: str) -> tuple[dict[str, Any], float, bool]:
+        """Execute *action* for *agent_id*.
+
+        Args:
+            agent_id: ID of the acting agent.
+            action: One of the recognised action strings (unknown actions are
+                treated as 'stay').
+
+        Returns:
+            Tuple of (observation, reward, done).
+
+        Raises:
+            KeyError: If agent_id is not registered.
+        """
+        if agent_id not in self._agents:
+            raise KeyError(f"Unknown agent '{agent_id}'. Register via add_agent() first.")
+        if not isinstance(action, str):
+            action = "stay"
+
         record = self._agents[agent_id]
         reward = -0.01  # small step penalty encourages efficiency
         done = False
@@ -106,6 +157,16 @@ class GridEnvironment(BaseEnvironment):
         return self.get_observation(agent_id), reward, done
 
     def get_observation(self, agent_id: str) -> dict[str, Any]:
+        """Return the current observation for *agent_id* without advancing time.
+
+        Args:
+            agent_id: ID of the agent.
+
+        Raises:
+            KeyError: If agent_id is not registered.
+        """
+        if agent_id not in self._agents:
+            raise KeyError(f"Unknown agent '{agent_id}'. Register via add_agent() first.")
         record = self._agents[agent_id]
         r, c = record.position
         local_view = self._local_view(r, c)
@@ -121,6 +182,7 @@ class GridEnvironment(BaseEnvironment):
         }
 
     def render(self) -> str:
+        """Return a human-readable ASCII representation of the environment."""
         agent_cells = {rec.position: aid[0].upper() for aid, rec in self._agents.items()}
         lines: list[str] = []
         for r in range(self.rows):
@@ -166,6 +228,11 @@ class GridEnvironment(BaseEnvironment):
             c = int(self._rng.integers(0, self.cols))
             if self._grid[r, c] == EMPTY:
                 return (r, c)
+        # Exhaustive fallback: scan every cell
+        for r in range(self.rows):
+            for c in range(self.cols):
+                if self._grid[r, c] == EMPTY:
+                    return (r, c)
         return (0, 0)
 
     def _local_view(self, r: int, c: int) -> list[list[int]]:
