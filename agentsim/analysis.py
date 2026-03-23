@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import lru_cache
 from typing import Any
 
 import numpy as np
@@ -33,7 +34,15 @@ def compute_metrics(
     results: list[EpisodeResult],
     agents: dict[str, BaseAgent],
 ) -> SimulationMetrics:
-    """Aggregate metrics across all episodes."""
+    """Aggregate metrics across all episodes.
+
+    Args:
+        results: List of EpisodeResult objects from a simulation run.
+        agents: Mapping of agent_id to BaseAgent instances.
+
+    Returns:
+        SimulationMetrics with per-agent and aggregate statistics.
+    """
     n = len(results)
     if n == 0:
         return SimulationMetrics(
@@ -77,22 +86,79 @@ def compute_metrics(
 
 
 def compute_trajectory_stats(agent: BaseAgent) -> dict[str, Any]:
-    """Position and reward statistics over an agent's recorded history."""
+    """Position and reward statistics over an agent's recorded history.
+
+    Results for the same agent object are cached after the first call.
+    The cache is keyed on the current history length; if the agent has
+    stepped further the cache is bypassed (history length changed).
+
+    Args:
+        agent: Any BaseAgent with a populated history list.
+
+    Returns:
+        Dict of statistics, or empty dict if no history.
+    """
     history = agent.history
     if not history:
         return {}
+    return _trajectory_stats_cached(
+        tuple((h.position, h.reward) for h in history)
+    )
 
-    xs = [h.position[0] for h in history]
-    ys = [h.position[1] for h in history]
-    rewards = [h.reward for h in history]
+
+@lru_cache(maxsize=256)
+def _trajectory_stats_cached(
+    history_snapshot: tuple[tuple[tuple[int, int], float], ...],
+) -> dict[str, Any]:
+    """Internal LRU-cached computation kernel for trajectory statistics."""
+    xs = [h[0][0] for h in history_snapshot]
+    ys = [h[0][1] for h in history_snapshot]
+    rewards = [h[1] for h in history_snapshot]
 
     return {
-        "n_steps": len(history),
+        "n_steps": len(history_snapshot),
         "mean_x": float(np.mean(xs)),
         "mean_y": float(np.mean(ys)),
         "std_x": float(np.std(xs)),
         "std_y": float(np.std(ys)),
-        "total_reward": float(history[-1].reward),
+        "total_reward": float(history_snapshot[-1][1]),
         "reward_variance": float(np.var(rewards)),
         "unique_positions": len(set(zip(xs, ys))),
     }
+
+
+def run_episodes_parallel(
+    sim_factory: Any,
+    n_episodes: int,
+    max_workers: int = 4,
+) -> list[EpisodeResult]:
+    """Run independent simulation episodes in parallel using ThreadPoolExecutor.
+
+    Args:
+        sim_factory: Callable that returns a fresh (env, agents, config) tuple.
+            Called once per episode; must be thread-safe.
+        n_episodes: Total number of episodes to run.
+        max_workers: Thread-pool size (default 4, capped at n_episodes).
+
+    Returns:
+        List of EpisodeResult objects, one per episode, in episode order.
+    """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    from .simulation import Simulation
+
+    actual_workers = min(max_workers, n_episodes)
+    results: list[EpisodeResult] = [None] * n_episodes  # type: ignore[list-item]
+
+    def _run_one(episode_idx: int) -> tuple[int, EpisodeResult]:
+        env, agents, config = sim_factory()
+        sim = Simulation(env, agents, config)
+        return episode_idx, sim.run_episode(episode_idx)
+
+    with ThreadPoolExecutor(max_workers=actual_workers) as pool:
+        futures = {pool.submit(_run_one, i): i for i in range(n_episodes)}
+        for future in as_completed(futures):
+            idx, result = future.result()
+            results[idx] = result
+
+    return results
