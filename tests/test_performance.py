@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import time
 
-import pytest
-
 from agentsim import GridEnvironment, ReactiveAgent, Simulation, SimulationConfig
-from agentsim.analysis import _trajectory_stats_cached, compute_metrics, compute_trajectory_stats, run_episodes_parallel
-
+from agentsim.analysis import (
+    _trajectory_stats_cached,
+    compute_metrics,
+    compute_trajectory_stats,
+    run_episodes_parallel,
+)
 
 # ---------------------------------------------------------------------------
 # Helpers

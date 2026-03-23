@@ -12,8 +12,6 @@ from agentsim import (
     Simulation,
     SimulationConfig,
 )
-from agentsim.agents.base import AgentState
-
 
 # ---------------------------------------------------------------------------
 # Agent fixtures

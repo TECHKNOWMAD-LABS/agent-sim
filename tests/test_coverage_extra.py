@@ -29,17 +29,16 @@ from agentsim import (
     compute_metrics,
     compute_trajectory_stats,
 )
-from agentsim.environment.grid import FOOD, WALL
+from agentsim.environment.grid import FOOD
 from agentsim.scenarios.pursuit import _direction, _manhattan
 from agentsim.viz import (
     plot_reward_trend,
     render_agent_heatmap,
-    render_grid_ascii,
     render_episode_summary,
+    render_grid_ascii,
     simulation_report,
 )
 from tests.conftest import make_obs
-
 
 # ===========================================================================
 # DeliberativeAgent — missed branches

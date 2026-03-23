@@ -22,7 +22,6 @@ from __future__ import annotations
 import ast
 import os
 
-
 # ===========================================================================
 # Static AST scan — embedded as a live test so CI catches regressions
 # ===========================================================================
@@ -153,4 +152,4 @@ def test_no_hardcoded_secrets_patterns():
             except OSError:
                 continue
 
-    assert violations == [], f"Potential secrets found:\n" + "\n".join(violations)
+    assert violations == [], "Potential secrets found:\n" + "\n".join(violations)

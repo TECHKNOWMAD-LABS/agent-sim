@@ -2,13 +2,9 @@
 
 from __future__ import annotations
 
-import math
-
 import pytest
 
 from agentsim import GridEnvironment, LearningAgent, ReactiveAgent, Simulation, SimulationConfig
-from agentsim.simulation import EpisodeResult
-
 
 # ===========================================================================
 # BaseAgent / ReactiveAgent — constructor validation
