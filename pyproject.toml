@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "agentsim"
+name = "tkm-agentsim"
 version = "0.1.0"
 description = "Multi-agent simulation environment with scenarios, analysis, and visualization"
 authors = [{ name = "TechKnowMad Labs", email = "admin@techknowmad.ai" }]
