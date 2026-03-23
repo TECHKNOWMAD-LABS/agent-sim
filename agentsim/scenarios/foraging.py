@@ -9,6 +9,15 @@ from ..environment.grid import GridEnvironment
 
 @dataclass
 class ForagingResult:
+    """Result of a completed ForagingScenario run.
+
+    Attributes:
+        total_collected: Total food items collected by all agents.
+        steps: Number of environment steps taken.
+        efficiency: Ratio of items collected to steps taken.
+        agent_results: Mapping of agent_id to number of items collected.
+    """
+
     total_collected: int
     steps: int
     efficiency: float
@@ -16,7 +25,21 @@ class ForagingResult:
 
 
 def make_forager(agent_id: str, position: tuple[int, int]) -> ReactiveAgent:
-    """Create a reactive agent wired for food collection."""
+    """Create a reactive agent wired for food collection.
+
+    The agent uses condition-action rules in priority order:
+    1. Collect food if currently on a food cell.
+    2. Move toward the nearest food using the compass direction provided in
+       the observation.
+    3. Stay if no food signal is present.
+
+    Args:
+        agent_id: Unique string identifier for the agent.
+        position: Starting (row, col) position.
+
+    Returns:
+        A fully configured ReactiveAgent.
+    """
     agent = ReactiveAgent(agent_id, position)
     agent.add_rule(lambda obs: obs.get("food_nearby", False), "collect")
     agent.add_rule(lambda obs: obs.get("food_direction") == "up", "up")
@@ -28,7 +51,15 @@ def make_forager(agent_id: str, position: tuple[int, int]) -> ReactiveAgent:
 
 
 class ForagingScenario:
-    """Multiple reactive agents competing to collect food on a grid."""
+    """Multiple reactive agents competing to collect food on a grid.
+
+    Args:
+        n_agents: Number of forager agents.
+        grid_size: Side length of the square grid.
+        food_count: Number of food items placed on reset.
+        max_steps: Step budget before the episode is cut off.
+        seed: Random seed for reproducible grid layouts.
+    """
 
     def __init__(
         self,
@@ -50,7 +81,11 @@ class ForagingScenario:
         self.agents: list[ReactiveAgent] = []
 
     def setup(self) -> dict[str, Any]:
-        """Register agents and reset the environment."""
+        """Register agents and reset the environment.
+
+        Returns:
+            Initial observation map keyed by agent_id.
+        """
         self.env._agents.clear()
         for i in range(self.n_agents):
             self.env.add_agent(f"agent_{i}")
@@ -62,6 +97,11 @@ class ForagingScenario:
         return obs_map
 
     def run(self) -> ForagingResult:
+        """Execute the scenario and return aggregate results.
+
+        Returns:
+            ForagingResult with collection counts and efficiency metrics.
+        """
         obs_map = self.setup()
         done = False
         step = 0
