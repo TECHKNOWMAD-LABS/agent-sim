@@ -30,7 +30,7 @@ def main() -> None:
     print()
 
     # Build a richer report via the Simulation class
-    from agentsim import GridEnvironment, ReactiveAgent, Simulation, SimulationConfig
+    from agentsim import GridEnvironment, Simulation, SimulationConfig
     from agentsim.scenarios.foraging import make_forager
 
     env = GridEnvironment(rows=10, cols=10, food_count=15, seed=0)

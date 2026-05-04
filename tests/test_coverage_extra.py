@@ -309,8 +309,7 @@ class TestVizBranches:
         from agentsim.simulation import EpisodeResult
 
         results = [
-            EpisodeResult(episode=i, steps=10, total_reward={"a": 0.5}, done=True)
-            for i in range(8)
+            EpisodeResult(episode=i, steps=10, total_reward={"a": 0.5}, done=True) for i in range(8)
         ]
         report = simulation_report(results)
         assert "and 3 more" in report

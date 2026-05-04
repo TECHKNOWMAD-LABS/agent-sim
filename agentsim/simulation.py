@@ -127,8 +127,7 @@ class Simulation:
         n = len(self.results)
         avg_steps = sum(r.steps for r in self.results) / n
         avg_reward = {
-            aid: sum(r.total_reward.get(aid, 0.0) for r in self.results) / n
-            for aid in self.agents
+            aid: sum(r.total_reward.get(aid, 0.0) for r in self.results) / n for aid in self.agents
         }
         return {
             "episodes": n,

@@ -82,8 +82,8 @@ class LearningAgent(BaseAgent):
         next_state = self._obs_to_state(next_obs)
         old_q = self.q_table[self._state_key, self._last_action_idx]
         max_next = float(np.max(self.q_table[next_state]))
-        self.q_table[self._state_key, self._last_action_idx] = (
-            old_q + self.lr * (reward + self.gamma * max_next - old_q)
+        self.q_table[self._state_key, self._last_action_idx] = old_q + self.lr * (
+            reward + self.gamma * max_next - old_q
         )
         self.receive_reward(reward)
 

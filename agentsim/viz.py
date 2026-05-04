@@ -56,8 +56,7 @@ def plot_reward_trend(reward_trend: list[float], title: str = "Reward Trend") ->
     span = mx - mn or 1.0
     bars = " ▁▂▃▄▅▆▇█"
     sparkline = "".join(
-        bars[min(int(((v - mn) / span) * (len(bars) - 1)), len(bars) - 1)]
-        for v in reward_trend
+        bars[min(int(((v - mn) / span) * (len(bars) - 1)), len(bars) - 1)] for v in reward_trend
     )
     return f"{title}: {sparkline}  [{mn:.2f} … {mx:.2f}]"
 
@@ -89,8 +88,7 @@ def render_agent_heatmap(
     max_val = max(max(row) for row in grid) or 1
     lines = [
         "".join(
-            symbols[min(int((val / max_val) * (len(symbols) - 1)), len(symbols) - 1)]
-            for val in row
+            symbols[min(int((val / max_val) * (len(symbols) - 1)), len(symbols) - 1)] for val in row
         )
         for row in grid
     ]

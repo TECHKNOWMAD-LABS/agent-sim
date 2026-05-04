@@ -72,8 +72,7 @@ def compute_metrics(
         )
 
     reward_trend = [
-        float(np.mean([r.total_reward.get(aid, 0.0) for aid in agents]))
-        for r in results
+        float(np.mean([r.total_reward.get(aid, 0.0) for aid in agents])) for r in results
     ]
 
     return SimulationMetrics(
@@ -101,9 +100,7 @@ def compute_trajectory_stats(agent: BaseAgent) -> dict[str, Any]:
     history = agent.history
     if not history:
         return {}
-    return _trajectory_stats_cached(
-        tuple((h.position, h.reward) for h in history)
-    )
+    return _trajectory_stats_cached(tuple((h.position, h.reward) for h in history))
 
 
 @lru_cache(maxsize=256)

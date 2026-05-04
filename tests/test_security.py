@@ -127,9 +127,9 @@ def test_no_hardcoded_secrets_patterns():
     # Simple patterns — not exhaustive but catches common mistakes
     patterns = [
         re.compile(r'(?i)(password|passwd|secret|api_key)\s*=\s*["\'][^"\']{4,}'),
-        re.compile(r'(?i)sk-[A-Za-z0-9]{20,}'),        # OpenAI-style key
-        re.compile(r'AKIA[0-9A-Z]{16}'),                # AWS access key
-        re.compile(r'(?i)ghp_[A-Za-z0-9]{36}'),        # GitHub PAT
+        re.compile(r"(?i)sk-[A-Za-z0-9]{20,}"),  # OpenAI-style key
+        re.compile(r"AKIA[0-9A-Z]{16}"),  # AWS access key
+        re.compile(r"(?i)ghp_[A-Za-z0-9]{36}"),  # GitHub PAT
     ]
     violations = []
     exclude_dirs = {".git", "__pycache__", "node_modules", ".venv"}
