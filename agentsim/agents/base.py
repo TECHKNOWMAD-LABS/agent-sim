@@ -36,9 +36,7 @@ class BaseAgent(ABC):
             or len(position) != 2
             or not all(isinstance(v, int) for v in position)
         ):
-            raise ValueError(
-                f"position must be a 2-tuple of ints, got {position!r}"
-            )
+            raise ValueError(f"position must be a 2-tuple of ints, got {position!r}")
         self.id = agent_id
         self.state = AgentState(position=tuple(position))  # type: ignore[arg-type]
         self.history: list[AgentState] = []

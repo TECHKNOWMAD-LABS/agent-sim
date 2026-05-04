@@ -54,9 +54,7 @@ class GridEnvironment(BaseEnvironment):
         if not isinstance(food_count, int) or food_count < 0:
             raise ValueError(f"food_count must be a non-negative integer, got {food_count!r}")
         if not isinstance(wall_density, (int, float)) or not (0.0 <= wall_density < 1.0):
-            raise ValueError(
-                f"wall_density must be in [0.0, 1.0), got {wall_density!r}"
-            )
+            raise ValueError(f"wall_density must be in [0.0, 1.0), got {wall_density!r}")
         self.rows = rows
         self.cols = cols
         self.food_count = food_count
